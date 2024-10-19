@@ -15,6 +15,7 @@ You can run routine in two ways:
     - Verify the report 'report_verificacao' or the logs for more information about the results;
 
 2. If the website still don't have a sitemap, you can configure the urls manually:
+    [Manual execution](example/manual-process.gif.gif)
     - Set the variables:
         - GET_URL_AUTOMATICALLY with False
         - LISTA_URLS with all urls you want to verify;
