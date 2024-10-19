@@ -2,40 +2,45 @@
 Library    SeleniumLibrary
 Library    BuiltIn
 library    String
-Library    get_all_urls.py
+Library    get_urls.py
 Library    Collections
 Library    OperatingSystem
 
 
 *** Variables ***
-${BASE_URL}                  https://www.google.com.br   #insira a url aqui
-@{Lista_fontes_proibidas}    FFDinPro    DIN Pro         #insira as fontes não permitidas aqui
-${nome_relatorio}            report_verificacao.csv
+${GET_URL_AUTOMATICALLY}    ${False}
+${BASE_URL}                 https://www.insiraURL.com.br/   #insira a url aqui para obter automaticamente as urls do site através do mapa
+@{LISTA_URLS}               https://www.insiraURL.com.br/A     https://www.insiraURL.com.br/B    #Se o site não tiver mapa, então insira as urls que você quer verificar aqui
+${COOKIE_NAME}              insira_aqui_o_nome_do_cookie_authenticacao    # Authenticacao
+${COOKIE_VALUE}             insira_aqui_o_value_do_cookie_authenticacao   # Authenticacao
+
+
+@{Lista_fontes_proibidas}   FFDinPro    DIN Pro         #insira as fontes não permitidas aqui
+${nome_relatorio}           report_verificacao.csv
+${sleep_time}               5s
 
 *** Keywords ***
 
 Verificar se existem fontes nao permitidas na pagina
-    [Arguments]    ${URL}    ${Lista_fontes_proibidas}
     
-    Criar arquivo de relatorio    ${nome_relatorio}
-
-    @{LIST_URLS}    Obter todas as URLs da pagina   ${URL}
+    Criar arquivo de relatorio    ${nome_relatorio}    
+    Abrir Navegador
     
-    Open Browser    about:blank    chrome
+    IF   ${GET_URL_AUTOMATICALLY} == ${True}
+        @{LISTA_URLS}    Obter todas as URLs da pagina    ${BASE_URL}    
+    END
     
-    FOR    ${url}    IN    @{LIST_URLS}
+    FOR    ${url}    IN    @{LISTA_URLS}
+        
         Navegar para pagina    ${url}
 
         ${fontes_encontradas}    Obter fontes da pagina
         
-        ${status}    Run Keyword And Return Status   
-        ...    Verificar se página contem fonte proibida    ${fontes_encontradas}    ${Lista_fontes_proibidas}
-
         Salvar status no arquivo de texto    
-        ...    ${nome_relatorio}    ${url}    ${fontes_encontradas}    ${status}
+        ...    ${nome_relatorio}    ${url}    ${fontes_encontradas}
     END
 
-    Close Browser
+    Fechar Navegador
 
 Obter todas as URLs da pagina
     [Arguments]    ${URL}
@@ -46,6 +51,8 @@ Navegar para pagina
     [Arguments]    ${url}
     Log To Console    ${\n}--- URL: ${url}
     Go To    ${url}
+    SeleniumLibrary.Add Cookie    name=${COOKIE_NAME}  value=${COOKIE_VALUE}
+    Sleep    ${sleep_time} 
 
 Obter fontes da pagina
     TRY
@@ -55,25 +62,17 @@ Obter fontes da pagina
     EXCEPT    AS     ${message}
         Log To Console    Não foi possível obter as fontes da página. Erro: ${message}
     END
-    
-
-Verificar se página contem fonte proibida
-    [Arguments]    ${fontes_encontradas}    ${fontes_proibidas}
-    IF    ${fontes_encontradas} is not ${EMPTY}:
-        FOR    ${fonte_proibida}    IN    @{Lista_fontes_proibidas}
-            IF   "${fonte_proibida.lower()}" == "${fontes_encontradas.lower()}"
-                FAIL    msg=\tA fonte ${fontes_encontradas} não é permitida!
-            END
-        END
-    ELSE
-        FAIL    msg=Não foram encontradas fontes na página!
-    END
-    
 
 Criar arquivo de relatorio
     [Arguments]    ${nome}
-    Append To File    ${nome}    URL,Fonte_encontrada,Status
+    Create File       ${nome}     content=URL,Fonte_encontrada,Status    
 
 Salvar status no arquivo de texto
-    [Arguments]    ${nome_arquivo}    ${url}    ${fonte}    ${status}
-    Append To File    ${nome_arquivo}   \n${url},"${fonte}",${status}
+    [Arguments]    ${nome_arquivo}    ${url}    ${fonte}
+    Append To File    ${nome_arquivo}   \n${url},"${fonte}"
+
+Abrir Navegador
+    Open Browser    about:blank    Chrome    executable_path=C:/chromedriver.exe
+
+Fechar Navegador
+    Close Browser

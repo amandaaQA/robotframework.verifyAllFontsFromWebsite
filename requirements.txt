@@ -1,0 +1,8 @@
+# Robot
+robotframework
+robotframework-SeleniumLibrary
+
+# py
+requests
+beautifulsoup4
+selenium
