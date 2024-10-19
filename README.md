@@ -25,9 +25,7 @@ You can run routine in two ways:
 
     ![Manual execution](example/manual-process.gif.gif)
 
-PS:
-
-    - If your site/url requires authentication, you can use the variables COOKIE_NAME and COOKIE_VALUE to configure the session;
+PS: If your site/url requires authentication, you can use the variables COOKIE_NAME and COOKIE_VALUE to configure the session;
 
 INSTALATION
 ----------------
